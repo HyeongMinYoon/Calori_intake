@@ -276,5 +276,26 @@ function renderCfg(){
     + '<div style="border-top:1px solid var(--grid);margin-top:14px;padding-top:11px">'
     + '<div class="eyebrow" style="margin-bottom:6px">Anthropic API 키</div>'
     + '<input class="in" id="apiKey" type="password" placeholder="sk-ant-..." value="'+esc(S.apiKey)+'" autocomplete="off">'
-    + '<div style="font-size:10px;color:var(--mid);margin-top:6px;line-height:1.5">Claude 앱 안에서 볼 때는 비워두면 된다. 홈 화면 앱으로 설치해 쓸 때만 사진 분석과 추천에 키가 필요하다. 키는 이 기기에만 저장된다.</div></div>';
+    + '<div style="font-size:10px;color:var(--mid);margin-top:6px;line-height:1.5">Claude 앱 안에서 볼 때는 비워두면 된다. 홈 화면 앱으로 설치해 쓸 때만 사진 분석과 추천에 키가 필요하다. 키는 이 기기에만 저장된다.</div></div>'
+
+    + '<div style="border-top:1px solid var(--grid);margin-top:14px;padding-top:11px">'
+    + '<div class="eyebrow" style="margin-bottom:8px">기록 백업</div>'
+    + (S.imp
+        ? '<div style="font-size:11px;line-height:1.6;background:var(--soft);border-left:2px solid var(--rule);padding:8px 10px">'
+          + '가져올 내용: <strong>'+S.imp.days+'일 '+S.imp.items+'건</strong>'
+          + (S.imp.months.length ? '<br>'+esc(S.imp.months[0])+' ~ '+esc(S.imp.months[S.imp.months.length-1]) : '')
+          + (S.imp.data.profile ? '<br>신체 정보와 목적도 함께 덮어쓴다.' : '')
+          + '</div>'
+          + '<div style="display:flex;gap:8px;margin-top:10px">'
+          + '<button class="btn solid" id="impApply" style="flex:1">가져오기 실행</button>'
+          + '<button class="btn" id="impCancel">취소</button></div>'
+        : '<div style="display:flex;gap:8px">'
+          + '<button class="btn" id="expBtn" style="flex:1">내보내기</button>'
+          + '<label class="btn" for="impFile" style="flex:1">가져오기</label>'
+          + '<input type="file" id="impFile" accept=".json,application/json" class="filein"></div>')
+    + '<div style="font-size:10px;color:var(--mid);margin-top:7px;line-height:1.5">'
+    + '기록과 신체 정보를 JSON 파일 하나로 내보낸다. 가져오기는 기존 기록을 지우지 않고 없는 것만 더한다. API 키는 파일에 담기지 않는다.</div>'
+    + (S.backupMsg?'<div style="font-size:11px;color:var(--c2);margin-top:8px;line-height:1.5">'+esc(S.backupMsg)+'</div>':'')
+    + (S.backupErr?'<div style="font-size:11px;color:var(--c3);margin-top:8px;line-height:1.5">'+esc(S.backupErr)+'</div>':'')
+    + '</div>';
 }

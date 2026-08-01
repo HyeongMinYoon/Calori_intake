@@ -40,7 +40,9 @@ var S = {
   recs:null, recBusy:false, recError:'',
   cfgOpen:false,
   // 먹은 음식 목록은 기본으로 접어 둔다. 항목이 쌓여도 카드가 길어지지 않게.
-  listOpen:false
+  listOpen:false,
+  // 백업: imp 는 가져오기 파일을 읽고 반영을 기다리는 중인 요약
+  imp:null, backupMsg:'', backupErr:''
 };
 
 /* 신장 기준 참고 체중 (BMI 22) */

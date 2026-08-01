@@ -27,6 +27,10 @@ document.addEventListener('click', function(ev){
     S.pending=null; S.photo=null; S.memo='';
     renderDay(); renderCal(); renderInput(); renderRec(); return; }
 
+  if (id==='expBtn'){ exportData(); return; }
+  if (id==='impApply'){ applyImport(); return; }
+  if (id==='impCancel'){ S.imp=null; S.backupErr=''; S.backupMsg=''; renderCfg(); return; }
+
   if (t.closest('#listToggle')){
     S.listOpen = !S.listOpen;
     store.set('intake:listopen', S.listOpen ? '1' : '0');
@@ -74,6 +78,12 @@ document.addEventListener('click', function(ev){
 });
 
 document.addEventListener('change', function(ev){
+  if (ev.target.id==='impFile' && ev.target.files && ev.target.files[0]){
+    var bf = ev.target.files[0];
+    ev.target.value='';
+    readBackup(bf);
+    return;
+  }
   if (ev.target.id==='file' && ev.target.files && ev.target.files[0]){
     var f = ev.target.files[0];
     ev.target.value='';
