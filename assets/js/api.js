@@ -95,22 +95,29 @@ async function recommend(){
   var prompt = '하루 섭취 목표에서 남은 여유분이 아래와 같다.\n'
     + '남은 열량 '+r.kcal+' kcal, 탄수화물 '+r.carb+' g, 단백질 '+r.protein+' g, 지방 '+r.fat+' g. 현재 시각 '+pad(now.getHours())+'시.\n'
     + '오늘 이미 먹은 것: ' + ((S.data[S.selected]||[]).map(function(e){return e.name;}).join(', ') || '없음') + '.\n'
-    + '한국 편의점(GS25, CU, 세븐일레븐, 이마트24)에서 실제로 파는 제품 위주로 메뉴 3가지를 추천하라.\n'
-    + '- 한 끼가 되도록 여러 제품을 조합해도 된다. 예: 삼각김밥 + 닭가슴살 + 저지방우유.\n'
+    + '한국 편의점(GS25, CU, 세븐일레븐, 이마트24)에서 실제로 파는 제품 위주로 6가지를 추천하라.\n'
+    + '- 정확히 2개는 한 끼 식사(type "meal"), 4개는 간식(type "snack")이다.\n'
+    + '- 한 끼 식사는 남은 열량을 상당 부분 채우는 구성으로, 여러 제품을 조합한다. '
+    + '예: 삼각김밥 + 닭가슴살 + 저지방우유.\n'
+    + '- 간식은 가볍게 먹는 단품 위주로 하고, 서로 다른 종류로 고른다.\n'
+    + '- 6개는 함께 먹는 것이 아니라 이 중에서 하나를 고르는 대안이다. '
+    + '따라서 각 항목이 단독으로 남은 양을 크게 초과하지 않게 한다.\n'
     + '- 편의점에서 흔히 볼 수 있는 제품군 이름을 쓴다. 특정 점포에만 있는 한정 상품은 피한다.\n'
     + '- 편의점 제품만으로 남은 양을 맞추기 어려울 때만 다른 선택지를 하나까지 섞어도 된다.\n'
-    + '남은 양을 크게 초과하지 않으면서 부족한 영양소를 우선 채우는 조합을 고른다. 시각이 늦으면 가벼운 간식 쪽으로 조정한다.\n'
+    + '부족한 영양소를 우선 채우는 조합을 고른다. 시각이 늦으면 가벼운 쪽으로 조정한다.\n'
     + '오직 아래 JSON만 출력한다. 마크다운 백틱이나 설명 없이 JSON 객체 하나만 출력한다.\n'
-    + '{"picks":[{"name":"메뉴명","desc":"구성과 양 한 줄","kcal":0,"carb":0,"protein":0,"fat":0,"fit":"남은 양에 맞는 이유 한 줄"}]}\n'
+    + '{"picks":[{"type":"meal","name":"메뉴명","desc":"구성과 양 한 줄","kcal":0,"carb":0,"protein":0,"fat":0,"fit":"남은 양에 맞는 이유 한 줄"}]}\n'
     + '수치는 모두 정수, 그램 단위.';
   try{
     var data = await callAPI({
-      model:API_MODEL, max_tokens:1000,
+      // 6개 항목이라 3개일 때보다 응답이 길다. 모자라면 JSON이 잘려 파싱에 실패한다.
+      model:API_MODEL, max_tokens:2000,
       messages:[{role:'user', content:prompt}]
     });
     var parsed = parseJSON(data);
     S.recs = (parsed.picks||[]).map(function(p){
       return {
+        type:(String(p.type||'').toLowerCase()==='meal') ? 'meal' : 'snack',
         name:String(p.name||'메뉴'), desc:String(p.desc||''), fit:String(p.fit||''),
         kcal:Math.max(0,Math.round(Number(p.kcal)||0)), carb:Math.max(0,Math.round(Number(p.carb)||0)),
         protein:Math.max(0,Math.round(Number(p.protein)||0)), fat:Math.max(0,Math.round(Number(p.fat)||0))

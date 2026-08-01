@@ -92,21 +92,35 @@ function renderRec(){
       + '<div style="font-size:9px;color:var(--mid);margin-top:1px">'+unit+'</div></div>';
   };
 
+  /* data-rec 은 S.recs 의 원래 인덱스여야 한다. 종류별로 나눠 그리더라도
+     인덱스를 함께 들고 다니는 이유다. */
+  var pick = function(p, i){
+    return '<div class="pick">'
+      + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">'
+      + '<strong style="font-size:13px;min-width:0;line-height:1.4">'+esc(p.name)+'</strong>'
+      // 메뉴명이 길어도 열량은 한 줄로 유지한다
+      + '<span class="disp" style="font-size:15px;font-weight:700;flex-shrink:0;white-space:nowrap">'+p.kcal+'<span style="font-size:9px;color:var(--mid)"> kcal</span></span></div>'
+      + (p.desc?'<div style="font-size:10px;color:var(--mid);margin-top:3px;line-height:1.5">'+esc(p.desc)+'</div>':'')
+      + '<div style="display:flex;gap:10px;font-size:11px;margin-top:6px">'
+      + '<span style="color:var(--c1)">탄 '+p.carb+'</span><span style="color:var(--c2)">단 '+p.protein+'</span><span style="color:var(--c3)">지 '+p.fat+'</span>'
+      + '<button class="btn" data-rec="'+i+'" style="margin-left:auto;padding:5px 10px;min-height:30px;font-size:11px">기록에 추가</button></div>'
+      + (p.fit?'<div style="font-size:10px;color:var(--mid);margin-top:5px">↳ '+esc(p.fit)+'</div>':'')
+      + '</div>';
+  };
+
   var body;
   if (S.recs && S.recs.length){
-    body = S.recs.map(function(p,i){
-      return '<div class="pick">'
-        + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">'
-        + '<strong style="font-size:13px">'+esc(p.name)+'</strong>'
-        + '<span class="disp" style="font-size:15px;font-weight:700">'+p.kcal+'<span style="font-size:9px;color:var(--mid)"> kcal</span></span></div>'
-        + (p.desc?'<div style="font-size:10px;color:var(--mid);margin-top:3px;line-height:1.5">'+esc(p.desc)+'</div>':'')
-        + '<div style="display:flex;gap:10px;font-size:11px;margin-top:6px">'
-        + '<span style="color:var(--c1)">탄 '+p.carb+'</span><span style="color:var(--c2)">단 '+p.protein+'</span><span style="color:var(--c3)">지 '+p.fat+'</span>'
-        + '<button class="btn" data-rec="'+i+'" style="margin-left:auto;padding:5px 10px;min-height:30px;font-size:11px">기록에 추가</button></div>'
-        + (p.fit?'<div style="font-size:10px;color:var(--mid);margin-top:5px">↳ '+esc(p.fit)+'</div>':'')
-        + '</div>';
-    }).join('')
-    + '<button class="btn" id="recAgain" style="width:100%;margin-top:10px">다시 추천받기</button>';
+    var indexed = S.recs.map(function(p,i){ return {p:p, i:i}; });
+    var meals  = indexed.filter(function(e){ return e.p.type === 'meal'; });
+    var snacks = indexed.filter(function(e){ return e.p.type !== 'meal'; });
+    var draw = function(list){ return list.map(function(e){ return pick(e.p, e.i); }).join(''); };
+
+    // 한쪽만 나온 경우(모델이 type을 빠뜨린 경우 포함)에는 머리말 없이 그냥 나열한다.
+    body = (meals.length && snacks.length)
+      ? '<div class="eyebrow recsec">한 끼 식사</div>' + draw(meals)
+        + '<div class="eyebrow recsec">간식</div>' + draw(snacks)
+      : draw(indexed);
+    body += '<button class="btn" id="recAgain" style="width:100%;margin-top:10px">다시 추천받기</button>';
   } else {
     var done = r.kcal <= 0;
     body = '<button class="btn solid'+(S.recBusy?' scan':'')+'" id="recBtn" style="width:100%;margin-top:11px"'+(S.recBusy||done?' disabled':'')+'>'

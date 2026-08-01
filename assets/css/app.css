@@ -87,6 +87,9 @@ body.installed #device{border:none;border-radius:0;box-shadow:none;height:100dvh
 }
 @media(prefers-reduced-motion:reduce){.listtoggle .chev{transition:none}}
 .pick{border-top:1px solid var(--grid);padding:10px 0}
+/* 추천 목록의 종류 머리말 (한 끼 식사 / 간식) */
+.recsec{margin:15px 0 -2px;color:var(--ink)}
+.recsec:first-of-type{margin-top:13px}
 .hide{display:none}
 .filein{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0,0,0,0);border:0;padding:0;margin:-1px}
 label.btn{display:inline-flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box}
