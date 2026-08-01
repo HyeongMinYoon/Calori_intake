@@ -17,7 +17,7 @@ document.addEventListener('click', function(ev){
   if (t.closest('#cfgBtn')){ S.cfgOpen=!S.cfgOpen; renderCfg(); return; }
 
   var goal = t.closest('[data-goal]');
-  if (goal){ S.profile.goal = goal.getAttribute('data-goal'); saveProfile(); S.recs=null; renderCfg(); renderDay(); renderCal(); renderRec(); return; }
+  if (goal){ S.profile.goal = goal.getAttribute('data-goal'); saveProfile(); S.recs=null; renderCfg(); renderDay(); renderCal(); renderRec(); renderWeight(); return; }
 
   if (id==='prev'){ S.cursor=new Date(S.cursor.getFullYear(),S.cursor.getMonth()-1,1); loadMonth(); return; }
   if (id==='next'){ S.cursor=new Date(S.cursor.getFullYear(),S.cursor.getMonth()+1,1); loadMonth(); return; }
@@ -25,7 +25,21 @@ document.addEventListener('click', function(ev){
   var cell = t.closest('.cell[data-date]');
   if (cell){ S.selected=cell.getAttribute('data-date'); S.manual=false; S.error=''; S.recs=null; S.recError='';
     S.pending=null; S.photo=null; S.memo='';
-    renderDay(); renderCal(); renderInput(); renderRec(); return; }
+    renderDay(); renderCal(); renderInput(); renderRec(); renderWeight(); return; }
+
+  if (id==='wtSave'){
+    saveWeight(S.selected, Number(document.getElementById('wtIn').value) || 0);
+    return;
+  }
+  if (id==='wtDel'){ saveWeight(S.selected, 0); return; }
+  if (id==='tuneOk'){ applyTune(Number(t.getAttribute('data-tune'))); return; }
+  if (id==='tuneNo'){
+    // 이번 제안은 넘긴다. 다음 판단까지 최소 간격을 두기 위해 시각만 찍는다.
+    S.tunedAt = Date.now();
+    store.set('intake:tunedat', String(S.tunedAt));
+    renderWeight(); return;
+  }
+  if (id==='tuneReset'){ resetTune(); return; }
 
   if (id==='expBtn' || id==='nagExp'){ exportData(); return; }
   if (id==='nagLater'){ snoozeBackup(); return; }
@@ -209,8 +223,11 @@ function showUpdate(worker){
   S.lastExport  = Number(await store.get('intake:lastexport')) || 0;
   S.lastChange  = Number(await store.get('intake:lastchange')) || 0;
   S.snoozeUntil = Number(await store.get('intake:snooze')) || 0;
+  S.tune    = Number(await store.get('intake:tune')) || 0;
+  S.tunedAt = Number(await store.get('intake:tunedat')) || 0;
+  await loadWeights();
   sizeDevice();
   await loadMonth();
-  renderInput(); renderCfg(); renderRec(); renderNag();
+  renderInput(); renderCfg(); renderRec(); renderWeight(); renderNag();
   registerSW();
 })();

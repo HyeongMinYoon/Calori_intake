@@ -45,16 +45,21 @@ var S = {
   imp:null, backupMsg:'', backupErr:'',
   // 백업 알림. backupEvery 는 며칠마다 알릴지, 0 이면 끄기.
   // lastChange 가 lastExport 보다 나중일 때만 알린다 — 안 쓴 날엔 조용하도록.
-  backupEvery:1, lastExport:0, lastChange:0, snoozeUntil:0
+  backupEvery:1, lastExport:0, lastChange:0, snoozeUntil:0,
+  // 체중 기록 {날짜: kg} 과 추세로 배운 열량 보정(비율), 마지막 조정 시각
+  weights:{}, tune:0, tunedAt:0
 };
 
 /* 신장 기준 참고 체중 (BMI 22) */
 function refWeight(h){ return Math.round(22 * Math.pow(h/100, 2)); }
 
-/* 목표 산출 */
+/* 목표 산출.
+ * S.tune 은 체중 추세로 배운 보정값이다. 계수는 성별·활동량을 모르는 추측이라
+ * 개인차를 담지 못하므로, 총 열량만 보정하고 단백질·지방은 체중당 값을 유지한다.
+ * 탄수화물이 나머지로 계산되므로 보정분을 자동으로 흡수한다. */
 function targets(){
   var g = GOALS[S.profile.goal], w = S.profile.w;
-  var kcal = Math.round(w * g.kcal / 10) * 10;
+  var kcal = Math.round(w * g.kcal * (1 + (S.tune || 0)) / 10) * 10;
   var protein = Math.round(w * g.p);
   var fat = Math.round(w * g.f);
   var carb = Math.max(0, Math.round((kcal - protein*4 - fat*9) / 4));

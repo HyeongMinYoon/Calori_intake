@@ -32,6 +32,71 @@ function renderNag(){
     + '<button class="x" id="nagLater" aria-label="하루 미루기">×</button>';
 }
 
+/* ================= 체중 · 추세 ================= */
+function renderWeight(){
+  var el = document.getElementById('wt');
+  if (!el) return;
+  var day = S.selected;
+  var today = S.weights ? S.weights[day] : null;
+  var t = weightTrend();
+  var s = tuneSuggestion();
+  var band = RATE[S.profile.goal];
+
+  var rateTxt = '기록이 더 쌓이면 표시된다';
+  if (t && t.rate !== null){
+    var sign = t.rate > 0 ? '+' : '';
+    var good = t.rate >= band.lo && t.rate <= band.hi;
+    rateTxt = '<span style="color:'+(good?'var(--c2)':'var(--c1)')+'"><strong>'
+      + sign + t.rate.toFixed(2) + '%</strong> / 주</span>'
+      + '<span style="color:var(--mid)"> · 목표 ' + band.lo + '~' + band.hi + '%</span>';
+  }
+
+  var html =
+    '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:11px">'
+    + '<div class="eyebrow">체중 · 추세</div>'
+    + (t ? '<div style="font-size:10px;color:var(--mid)">'+t.days+'일 기록</div>' : '')
+    + '</div>'
+    + '<div style="display:flex;gap:9px;align-items:flex-end">'
+    + '<label style="flex:1"><div class="lab">'+(day===iso(new Date())?'오늘':esc(day))+' 체중 kg</div>'
+    + '<input class="in" id="wtIn" type="number" inputmode="decimal" step="0.1" '
+    + 'placeholder="아침 공복" value="'+(today>0?today:'')+'"></label>'
+    + '<button class="btn" id="wtSave" style="padding:9px 14px;min-height:40px">기록</button>'
+    + (today>0?'<button class="btn" id="wtDel" style="padding:9px 12px;min-height:40px">삭제</button>':'')
+    + '</div>';
+
+  if (t){
+    html += '<div style="display:flex;gap:6px;margin-top:12px">'
+      + '<div style="flex:1;text-align:center;padding:8px 2px;border:1px solid var(--grid)">'
+      + '<div class="disp" style="font-size:19px;font-weight:700">'+t.avg.toFixed(1)+'</div>'
+      + '<div style="font-size:9px;color:var(--mid);margin-top:1px">7일 평균 kg</div></div>'
+      + '<div style="flex:2;text-align:center;padding:8px 6px;border:1px solid var(--grid);display:flex;flex-direction:column;justify-content:center">'
+      + '<div style="font-size:12px;line-height:1.5">'+rateTxt+'</div></div></div>';
+  }
+
+  if (s.ready){
+    html += '<div style="border-top:1px solid var(--grid);margin-top:12px;padding-top:11px">'
+      + '<div style="font-size:11px;line-height:1.6;background:var(--soft);border-left:2px solid var(--rule);padding:8px 10px">'
+      + '실제 <strong>'+(s.trend.rate>0?'+':'')+s.trend.rate.toFixed(2)+'%/주</strong>, '
+      + '목표 '+s.band.lo+'~'+s.band.hi+'%.<br>'
+      + '하루 목표를 <strong>'+s.before+' → '+s.after+' kcal</strong> 로 '+s.dir+'.'
+      + '</div>'
+      + '<div style="display:flex;gap:8px;margin-top:10px">'
+      + '<button class="btn solid" id="tuneOk" data-tune="'+s.tune+'" style="flex:1">조정 적용</button>'
+      + '<button class="btn" id="tuneNo">그대로</button></div></div>';
+  } else if (s.why){
+    html += '<div style="font-size:10px;color:'+(s.onTrack?'var(--c2)':'var(--mid)')+';margin-top:10px;line-height:1.5">'
+      + esc(s.why) + '</div>';
+  }
+
+  if (S.tune){
+    html += '<div style="font-size:10px;color:var(--mid);margin-top:8px;line-height:1.5">'
+      + '현재 보정 <strong style="color:var(--ink)">'+(S.tune>0?'+':'')+Math.round(S.tune*100)+'%</strong>'
+      + ' — 계수만 쓴 값 대비. <button class="x" id="tuneReset" style="font-size:10px;padding:2px 4px;text-decoration:underline">초기화</button></div>';
+  }
+
+  el.innerHTML = html;
+}
+
 /* ================= 선택일 패널 ================= */
 function renderDay(){
   var T = targets(), t = sum(S.data[S.selected]);

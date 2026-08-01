@@ -50,10 +50,13 @@ async function exportData(){
     var data = {
       app:'intake-log', version:BACKUP_VERSION,
       exportedAt:new Date().toISOString(),
-      profile:null, months:{}
+      profile:null, months:{}, weights:{}, tune:0
     };
     var p = await store.get('intake:profile');
     if (p){ try{ data.profile = JSON.parse(p); }catch(e){} }
+    var w = await store.get('intake:weight');
+    if (w){ try{ data.weights = JSON.parse(w) || {}; }catch(e){} }
+    data.tune = Number(await store.get('intake:tune')) || 0;
 
     var months = await backupMonths();
     for (var i=0; i<months.length; i++){
@@ -77,7 +80,8 @@ async function exportData(){
     await store.set('intake:lastexport', String(S.lastExport));
     await store.set('intake:snooze', '0');
 
-    S.backupMsg = n.days+'일 '+n.items+'건을 '+name+' 으로 내보냈다.';
+    var wn = Object.keys(data.weights || {}).length;
+    S.backupMsg = n.days+'일 '+n.items+'건'+(wn?' · 체중 '+wn+'일':'')+'을 '+name+' 으로 내보냈다.';
   }catch(e){
     S.backupErr = '내보내기에 실패했다. 저장 공간을 확인할 것.';
   }
@@ -145,7 +149,7 @@ function readBackup(file){
  * 새 기기에 통째로 복원하는 경우에는 대상이 비어 있으니 결과가 같다. */
 async function applyImport(){
   if (!S.imp) return;
-  var data = S.imp.data, added = 0, skipped = 0;
+  var data = S.imp.data, added = 0, skipped = 0, addedW = 0;
   try{
     var months = Object.keys(data.months);
     for (var i=0; i<months.length; i++){
@@ -173,16 +177,32 @@ async function applyImport(){
       await store.set('intake:'+mk, JSON.stringify(cur));
     }
 
+    // 체중은 날짜별 단일 값이라 기존에 없는 날짜만 채운다
+    if (data.weights && typeof data.weights === 'object'){
+      if (!S.weights) S.weights = {};
+      Object.keys(data.weights).forEach(function(d){
+        if (!(S.weights[d] > 0) && data.weights[d] > 0){ S.weights[d] = data.weights[d]; addedW++; }
+      });
+      await store.set('intake:weight', JSON.stringify(S.weights));
+    }
+    if (typeof data.tune === 'number' && data.tune){
+      S.tune = data.tune;
+      await store.set('intake:tune', String(S.tune));
+    }
     if (data.profile){
       S.profile = Object.assign(S.profile, data.profile);
       await saveProfile();
     }
 
     S.imp = null;
-    S.backupMsg = added
-      ? (added+'건을 반영했다.' + (skipped ? ' 이미 있던 '+skipped+'건은 그대로 두었다.' : ''))
-      : '새로 반영할 기록이 없었다. 이미 모두 들어 있다.';
+    var parts = [];
+    if (added)  parts.push('기록 '+added+'건');
+    if (addedW) parts.push('체중 '+addedW+'일');
+    S.backupMsg = parts.length
+      ? (parts.join(', ')+'을 반영했다.' + (skipped ? ' 이미 있던 '+skipped+'건은 그대로 두었다.' : ''))
+      : '새로 반영할 것이 없었다. 이미 모두 들어 있다.';
     await loadMonth();
+    renderWeight();
   }catch(e){
     S.backupErr = '가져오기에 실패했다. 저장 공간을 확인할 것.';
   }

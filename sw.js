@@ -6,7 +6,7 @@
 //
 // Bump CACHE_VERSION whenever a shell file changes - the old cache is dropped on
 // activate, which is what makes a `git push` actually reach installed phones.
-const CACHE_VERSION = 'v8';
+const CACHE_VERSION = 'v9';
 const CACHE_NAME = `calori-intake-${CACHE_VERSION}`;
 
 const SHELL = [
@@ -22,6 +22,7 @@ const SHELL = [
   './assets/js/store.js',
   './assets/js/api.js',
   './assets/js/backup.js',
+  './assets/js/weight.js',
   './assets/js/render.js',
   './assets/js/app.js',
   './assets/icons/icon-180.png',
