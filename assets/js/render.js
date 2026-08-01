@@ -222,6 +222,22 @@ function renderInput(){
   var future = new Date(S.selected+'T00:00:00') > new Date(today.getFullYear(),today.getMonth(),today.getDate());
   var html = '<div class="eyebrow" style="margin-bottom:10px">기록 추가</div>';
 
+  /* 가장 빠른 길이라 맨 위에 둔다. 사진이나 추정을 거치지 않으므로 API 호출이
+     없고, 누르는 즉시 기록된다. */
+  if (!S.pending && !S.photo && !future && (S.favs || []).length){
+    html += '<div class="lab" style="display:flex;align-items:center;margin-bottom:7px">'
+      + '<span>자주 먹는 것 · 눌러서 바로 추가</span>'
+      + '<button class="favedit" id="favEdit">'+(S.favEdit?'완료':'편집')+'</button></div>'
+      + '<div class="favs">' + S.favs.slice(0, FAV_SHOW).map(function(f,i){
+          return '<button class="fav" data-fav="'+i+'">'
+            + '<span class="fn">'+esc(f.name)+'</span>'
+            + '<span class="fk">'+f.kcal+'</span>'
+            + (S.favEdit?'<span class="fx" data-forget="'+esc(f.name)+'">×</span>':'')
+            + '</button>';
+        }).join('') + '</div>'
+      + '<div style="border-top:1px solid var(--grid);margin:12px 0 11px"></div>';
+  }
+
   if (S.pending){
     // 사진 흐름은 3단계 중 마지막, 이름 추정은 곧바로 확인 화면이다.
     html += '<div class="lab" style="margin-bottom:6px">'

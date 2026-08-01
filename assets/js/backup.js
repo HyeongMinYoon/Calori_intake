@@ -50,13 +50,15 @@ async function exportData(){
     var data = {
       app:'intake-log', version:BACKUP_VERSION,
       exportedAt:new Date().toISOString(),
-      profile:null, months:{}, weights:{}, tune:0
+      profile:null, months:{}, weights:{}, tune:0, favs:[]
     };
     var p = await store.get('intake:profile');
     if (p){ try{ data.profile = JSON.parse(p); }catch(e){} }
     var w = await store.get('intake:weight');
     if (w){ try{ data.weights = JSON.parse(w) || {}; }catch(e){} }
     data.tune = Number(await store.get('intake:tune')) || 0;
+    var fv = await store.get('intake:favs');
+    if (fv){ try{ data.favs = JSON.parse(fv) || []; }catch(e){} }
 
     var months = await backupMonths();
     for (var i=0; i<months.length; i++){
@@ -184,6 +186,18 @@ async function applyImport(){
         if (!(S.weights[d] > 0) && data.weights[d] > 0){ S.weights[d] = data.weights[d]; addedW++; }
       });
       await store.set('intake:weight', JSON.stringify(S.weights));
+    }
+    // 자주 먹는 것은 이름이 겹치지 않는 것만 더한다
+    if (Array.isArray(data.favs) && data.favs.length){
+      if (!Array.isArray(S.favs)) S.favs = [];
+      var names = {};
+      S.favs.forEach(function(f){ names[f.name] = 1; });
+      data.favs.forEach(function(f){
+        if (f && f.name && !names[f.name]){ S.favs.push(f); names[f.name] = 1; }
+      });
+      S.favs.sort(function(a,b){ return (b.n - a.n) || (b.last - a.last); });
+      if (S.favs.length > FAV_KEEP) S.favs.length = FAV_KEEP;
+      await store.set('intake:favs', JSON.stringify(S.favs));
     }
     if (typeof data.tune === 'number' && data.tune){
       S.tune = data.tune;
