@@ -17,6 +17,21 @@ function sizeDevice(){
   document.getElementById('dims').textContent = d.label;
 }
 
+/* ================= 백업 알림 줄 ================= */
+function renderNag(){
+  var el = document.getElementById('nag');
+  if (!el) return;
+  var due = (typeof backupDue === 'function') ? backupDue() : null;
+  if (!due){ el.className = 'hide'; el.innerHTML = ''; return; }
+  el.className = 'nag';
+  el.innerHTML =
+    '<span>' + (due.days === null
+      ? '아직 백업한 적이 없다. 기록을 파일로 빼 둘 것.'
+      : '마지막 백업 후 ' + due.days + '일. 그 뒤로 기록이 바뀌었다.') + '</span>'
+    + '<button class="btn" id="nagExp">내보내기</button>'
+    + '<button class="x" id="nagLater" aria-label="하루 미루기">×</button>';
+}
+
 /* ================= 선택일 패널 ================= */
 function renderDay(){
   var T = targets(), t = sum(S.data[S.selected]);
@@ -294,7 +309,17 @@ function renderCfg(){
           + '<label class="btn" for="impFile" style="flex:1">가져오기</label>'
           + '<input type="file" id="impFile" accept=".json,application/json" class="filein"></div>')
     + '<div style="font-size:10px;color:var(--mid);margin-top:7px;line-height:1.5">'
-    + '기록과 신체 정보를 JSON 파일 하나로 내보낸다. 가져오기는 기존 기록을 지우지 않고 없는 것만 더한다. API 키는 파일에 담기지 않는다.</div>'
+    + '기록과 신체 정보를 JSON 파일 하나로 내보낸다. 가져오기는 기존 기록을 지우지 않고 없는 것만 더한다. '
+    + '<strong>내보내기와 가져오기는 API를 쓰지 않는다 — 크레딧이 차감되지 않는다.</strong> API 키도 파일에 담기지 않는다.</div>'
+
+    + '<div class="lab" style="margin:13px 0 6px">백업 알림</div>'
+    + '<div class="everyrow">' + [[1,'매일'],[7,'7일'],[14,'14일'],[0,'끄기']].map(function(o){
+        return '<button class="btn'+(S.backupEvery===o[0]?' solid':'')+'" data-every="'+o[0]+'">'+o[1]+'</button>';
+      }).join('') + '</div>'
+    + '<div style="font-size:10px;color:var(--mid);margin-top:6px;line-height:1.5">'
+    + '자동 저장은 할 수 없다. 웹 앱은 닫혀 있는 동안 실행되지 않기 때문이다. 대신 때가 되면 앱 위쪽에 줄이 뜨고, 거기서 한 번에 내보낼 수 있다. 기록이 바뀌지 않았으면 뜨지 않는다.'
+    + (S.lastExport ? '<br>마지막 백업: ' + esc(new Date(S.lastExport).toLocaleString('ko-KR')) : '<br>아직 백업한 적이 없다.')
+    + '</div>'
     + (S.backupMsg?'<div style="font-size:11px;color:var(--c2);margin-top:8px;line-height:1.5">'+esc(S.backupMsg)+'</div>':'')
     + (S.backupErr?'<div style="font-size:11px;color:var(--c3);margin-top:8px;line-height:1.5">'+esc(S.backupErr)+'</div>':'')
     + '</div>';

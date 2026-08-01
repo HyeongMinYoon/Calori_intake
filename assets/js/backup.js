@@ -72,11 +72,44 @@ async function exportData(){
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
 
+    S.lastExport = Date.now();
+    S.snoozeUntil = 0;
+    await store.set('intake:lastexport', String(S.lastExport));
+    await store.set('intake:snooze', '0');
+
     S.backupMsg = n.days+'일 '+n.items+'건을 '+name+' 으로 내보냈다.';
   }catch(e){
     S.backupErr = '내보내기에 실패했다. 저장 공간을 확인할 것.';
   }
-  renderCfg();
+  renderCfg(); renderNag();
+}
+
+/* ================= 백업 알림 =================
+ * 자동 저장은 할 수 없다. 웹 앱은 닫혀 있는 동안 실행되지 않고, 파일을 쓰려면
+ * 매번 사용자의 동작이 필요하다. 대신 앱을 열었을 때 때가 됐으면 알린다.
+ * 기록이 바뀌지 않았으면 알리지 않는다 — 안 쓴 날까지 보채지 않도록. */
+function backupDue(){
+  if (!S.backupEvery) return null;                 // 끄기
+  var now = Date.now();
+  if (S.snoozeUntil && now < S.snoozeUntil) return null;
+  if (!S.lastChange) return null;                  // 기록이 아예 없다
+  if (S.lastChange <= S.lastExport) return null;   // 마지막 백업 뒤로 바뀐 게 없다
+  if (!S.lastExport) return {days:null};           // 한 번도 백업한 적이 없다
+  var days = Math.floor((now - S.lastExport) / 86400000);
+  if (days < S.backupEvery) return null;
+  return {days:days};
+}
+
+async function snoozeBackup(){
+  S.snoozeUntil = Date.now() + 86400000;           // 하루 미룸
+  await store.set('intake:snooze', String(S.snoozeUntil));
+  renderNag();
+}
+
+async function setBackupEvery(days){
+  S.backupEvery = days;
+  await store.set('intake:backupevery', String(days));
+  renderCfg(); renderNag();
 }
 
 /* ================= 가져오기 ================= */

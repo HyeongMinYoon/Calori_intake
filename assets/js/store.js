@@ -42,7 +42,10 @@ var S = {
   // 먹은 음식 목록은 기본으로 접어 둔다. 항목이 쌓여도 카드가 길어지지 않게.
   listOpen:false,
   // 백업: imp 는 가져오기 파일을 읽고 반영을 기다리는 중인 요약
-  imp:null, backupMsg:'', backupErr:''
+  imp:null, backupMsg:'', backupErr:'',
+  // 백업 알림. backupEvery 는 며칠마다 알릴지, 0 이면 끄기.
+  // lastChange 가 lastExport 보다 나중일 때만 알린다 — 안 쓴 날엔 조용하도록.
+  backupEvery:1, lastExport:0, lastChange:0, snoozeUntil:0
 };
 
 /* 신장 기준 참고 체중 (BMI 22) */
@@ -84,11 +87,14 @@ var store = {
 async function loadMonth(){
   var raw = await store.get('intake:'+mkey(S.cursor));
   try{ S.data = raw ? JSON.parse(raw) : {}; }catch(e){ S.data = {}; }
-  renderDay(); renderCal(); renderRec();
+  renderDay(); renderCal(); renderRec(); renderNag();
 }
 async function persist(){
   var ok = await store.set('intake:'+mkey(S.cursor), JSON.stringify(S.data));
   if(!ok){ S.error='저장에 실패했다. 브라우저 저장 공간을 확인할 것.'; renderInput(); }
-  renderDay(); renderCal(); renderRec();
+  // 백업 알림은 마지막 내보내기 이후 기록이 바뀌었을 때만 뜬다
+  S.lastChange = Date.now();
+  await store.set('intake:lastchange', String(S.lastChange));
+  renderDay(); renderCal(); renderRec(); renderNag();
 }
 async function saveProfile(){ await store.set('intake:profile', JSON.stringify(S.profile)); }

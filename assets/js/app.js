@@ -27,7 +27,10 @@ document.addEventListener('click', function(ev){
     S.pending=null; S.photo=null; S.memo='';
     renderDay(); renderCal(); renderInput(); renderRec(); return; }
 
-  if (id==='expBtn'){ exportData(); return; }
+  if (id==='expBtn' || id==='nagExp'){ exportData(); return; }
+  if (id==='nagLater'){ snoozeBackup(); return; }
+  var every = t.closest('[data-every]');
+  if (every){ setBackupEvery(Number(every.getAttribute('data-every'))); return; }
   if (id==='impApply'){ applyImport(); return; }
   if (id==='impCancel'){ S.imp=null; S.backupErr=''; S.backupMsg=''; renderCfg(); return; }
 
@@ -201,8 +204,13 @@ function showUpdate(worker){
   if (k) S.apiKey = k;
   var lo = await store.get('intake:listopen');
   if (lo === '1') S.listOpen = true;
+  var every = await store.get('intake:backupevery');
+  if (every !== null && every !== undefined && every !== '') S.backupEvery = Number(every) || 0;
+  S.lastExport  = Number(await store.get('intake:lastexport')) || 0;
+  S.lastChange  = Number(await store.get('intake:lastchange')) || 0;
+  S.snoozeUntil = Number(await store.get('intake:snooze')) || 0;
   sizeDevice();
   await loadMonth();
-  renderInput(); renderCfg(); renderRec();
+  renderInput(); renderCfg(); renderRec(); renderNag();
   registerSW();
 })();
