@@ -142,6 +142,21 @@ function registerSW(){
     if (reg.waiting && navigator.serviceWorker.controller) showUpdate(reg.waiting);
     watch(reg.installing);
     reg.addEventListener('updatefound', function(){ watch(reg.installing); });
+
+    /* 홈 화면 앱을 백그라운드에서 다시 불러오면 페이지가 새로 로드되지 않는다.
+     * 그러면 새 버전 확인도 일어나지 않아 옛 버전에 머문다 — iOS에서 특히 그렇다.
+     * 앱이 앞으로 나올 때마다 직접 확인하되, 과하게 부르지 않도록 간격을 둔다. */
+    var lastCheck = 0;
+    var check = function(){
+      if (document.visibilityState !== 'visible') return;
+      var now = Date.now();
+      if (now - lastCheck < 60000) return;
+      lastCheck = now;
+      reg.update().catch(function(){ /* 오프라인이면 다음 기회에 */ });
+    };
+    document.addEventListener('visibilitychange', check);
+    window.addEventListener('focus', check);
+    check();
   }).catch(function(){ /* 오프라인 첫 실행 등 — 앱 동작에는 지장이 없다 */ });
 
   var reloading = false;

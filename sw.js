@@ -6,7 +6,7 @@
 //
 // Bump CACHE_VERSION whenever a shell file changes - the old cache is dropped on
 // activate, which is what makes a `git push` actually reach installed phones.
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v6';
 const CACHE_NAME = `calori-intake-${CACHE_VERSION}`;
 
 const SHELL = [
@@ -30,13 +30,24 @@ const SHELL = [
 ];
 
 self.addEventListener('install', (event) => {
+  // Deliberately no skipWaiting() here: the new worker stays in `waiting` until
+  // the page asks for it via the SKIP_WAITING message. That is what lets the
+  // app show its "new version" banner and swap only when the user taps it,
+  // instead of reloading out from under someone mid-entry.
   event.waitUntil(
     caches
       .open(CACHE_NAME)
       // addAll is all-or-nothing; add individually so one missing asset does
       // not abort the whole install.
-      .then((cache) => Promise.all(SHELL.map((url) => cache.add(url).catch(() => {}))))
-      .then(() => self.skipWaiting())
+      //
+      // `cache: 'reload'` is load-bearing: a plain cache.add() is allowed to
+      // satisfy itself from the browser's HTTP cache, and GitHub Pages serves
+      // assets with max-age=600. Without it a freshly installed worker can
+      // precache the *previous* build's files and the app silently keeps
+      // running old code even though the update went through.
+      .then((cache) => Promise.all(SHELL.map((url) =>
+        cache.add(new Request(url, { cache: 'reload' })).catch(() => {})
+      )))
   );
 });
 
