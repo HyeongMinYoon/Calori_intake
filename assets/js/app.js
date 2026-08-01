@@ -27,6 +27,12 @@ document.addEventListener('click', function(ev){
     S.pending=null; S.photo=null; S.memo='';
     renderDay(); renderCal(); renderInput(); renderRec(); return; }
 
+  if (t.closest('#listToggle')){
+    S.listOpen = !S.listOpen;
+    store.set('intake:listopen', S.listOpen ? '1' : '0');
+    renderDay(); return;
+  }
+
   var del = t.getAttribute && t.getAttribute('data-del');
   if (del){
     S.data[S.selected] = (S.data[S.selected]||[]).filter(function(e){ return e.id!==del; });
@@ -166,6 +172,8 @@ function showUpdate(worker){
   else { S.profile.w = refWeight(S.profile.h); }
   var k = await store.get('intake:apikey');
   if (k) S.apiKey = k;
+  var lo = await store.get('intake:listopen');
+  if (lo === '1') S.listOpen = true;
   sizeDevice();
   await loadMonth();
   renderInput(); renderCfg(); renderRec();

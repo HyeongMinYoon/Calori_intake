@@ -38,7 +38,9 @@ var S = {
   apiKey:'',
   pending:null, photo:null, manual:false, busy:false, error:'', memo:'',
   recs:null, recBusy:false, recError:'',
-  cfgOpen:false
+  cfgOpen:false,
+  // 먹은 음식 목록은 기본으로 접어 둔다. 항목이 쌓여도 카드가 길어지지 않게.
+  listOpen:false
 };
 
 /* 신장 기준 참고 체중 (BMI 22) */

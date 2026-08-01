@@ -34,7 +34,8 @@ function renderDay(){
       + '<div style="height:4px;background:#E2E8ED"><div style="height:100%;width:'+Math.min(100,v/tg*100)+'%;background:'+CH[k]+'"></div></div></div>';
   }).join('');
 
-  var list = (S.data[S.selected]||[]).map(function(e){
+  var entries = S.data[S.selected] || [];
+  var rows = entries.map(function(e){
     return '<div class="row">'
       + '<span style="color:var(--mid);width:34px;flex-shrink:0">'+esc(e.t)+'</span>'
       + '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(e.name)
@@ -42,7 +43,22 @@ function renderDay(){
       + '<span style="color:var(--c1)">'+e.carb+'</span><span style="color:var(--c2)">'+e.protein+'</span><span style="color:var(--c3)">'+e.fat+'</span>'
       + '<strong style="width:42px;text-align:right">'+e.kcal+'</strong>'
       + '<button class="x" data-del="'+esc(e.id)+'" aria-label="항목 삭제">×</button></div>';
-  }).join('') || '<div style="font-size:12px;color:var(--mid);padding:10px 0">기록이 없다. 아래에서 사진을 올리면 항목이 채워진다.</div>';
+  }).join('');
+
+  /* 항목이 쌓이면 카드가 한없이 길어지므로 접어 두고, 접힌 상태에서는
+     건수와 음식명만 한 줄로 보여 준다. */
+  var list;
+  if (!entries.length){
+    list = '<div style="font-size:12px;color:var(--mid);padding:10px 0">기록이 없다. 아래에서 사진을 올리면 항목이 채워진다.</div>';
+  } else {
+    list = '<button class="listtoggle" id="listToggle" aria-expanded="'+(S.listOpen?'true':'false')+'">'
+      + '<span class="chev'+(S.listOpen?' open':'')+'" aria-hidden="true">▶</span>'
+      + '<span>먹은 음식 <strong>'+entries.length+'</strong>건</span>'
+      + '<span class="cnt">'+(S.listOpen?'접기':'펼치기')+'</span></button>'
+      + (S.listOpen
+          ? rows
+          : '<div class="listnames">'+entries.map(function(e){ return esc(e.name); }).join(', ')+'</div>');
+  }
 
   document.getElementById('day').innerHTML =
     '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:13px">'

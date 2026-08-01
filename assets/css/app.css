@@ -67,6 +67,25 @@ body.installed #device{border:none;border-radius:0;box-shadow:none;height:100dvh
 .cell.sel{background:var(--sel)}
 .cell.today{box-shadow:inset 0 0 0 2px var(--ink)}
 .bar{height:6px;background:#E2E8ED;display:flex;position:relative}
+
+/* 먹은 음식 목록 접기/펼치기 */
+.listtoggle{
+  display:flex;align-items:center;gap:9px;width:100%;min-height:40px;
+  font-family:inherit;font-size:12px;color:var(--ink);text-align:left;
+  background:transparent;border:none;border-bottom:1px dotted var(--grid);
+  padding:10px 0;cursor:pointer
+}
+.listtoggle .chev{
+  font-size:9px;color:var(--mid);flex-shrink:0;
+  transition:transform .15s ease
+}
+.listtoggle .chev.open{transform:rotate(90deg)}
+.listtoggle .cnt{margin-left:auto;font-size:10px;color:var(--mid);letter-spacing:.06em}
+.listnames{
+  font-size:11px;color:var(--mid);padding:8px 0 2px;line-height:1.5;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+@media(prefers-reduced-motion:reduce){.listtoggle .chev{transition:none}}
 .pick{border-top:1px solid var(--grid);padding:10px 0}
 .hide{display:none}
 .filein{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0,0,0,0);border:0;padding:0;margin:-1px}
