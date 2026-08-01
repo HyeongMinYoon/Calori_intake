@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="INTAKE">
+<meta name="theme-color" content="#EAEEF2">
+<title>INTAKE LOG</title>
+
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+<link rel="apple-touch-icon" href="assets/icons/icon-180.png">
+
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<div id="shell">
+  <div id="chrome">
+    <button class="tab on" data-view="cover">커버 6.5″</button>
+    <button class="tab" data-view="main">메인 8.0″</button>
+    <span class="meta" id="dims"></span>
+  </div>
+
+  <div id="device"><div id="screen">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid var(--rule);padding-bottom:9px;margin-bottom:14px">
+      <div>
+        <div class="eyebrow">daily intake · macro channels</div>
+        <div class="disp" style="font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.05">INTAKE LOG</div>
+      </div>
+      <button class="btn" id="cfgBtn" style="padding:8px 12px;min-height:36px;font-size:12px">설정</button>
+    </div>
+
+    <div class="card hide" id="cfg"></div>
+    <div class="card" id="day"></div>
+    <div class="card" id="rec"></div>
+    <div class="card" id="input"></div>
+    <div class="card" id="cal"></div>
+
+    <div style="font-size:10px;color:var(--mid);line-height:1.6">
+      목표치는 신체 정보와 목적에서 계산한 참고값이고, 사진 추정치는 조리법과 양에 따라 오차가 크다. 저장 전에 값을 보정할 것.
+    </div>
+  </div></div>
+</div>
+
+<script src="assets/js/store.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/render.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

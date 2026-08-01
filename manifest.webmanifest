@@ -1,0 +1,35 @@
+{
+  "name": "INTAKE LOG",
+  "short_name": "INTAKE",
+  "description": "사진 한 장으로 칼로리와 탄단지를 기록하는 섭취 로그",
+  "lang": "ko",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "id": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EAEEF2",
+  "theme_color": "#EAEEF2",
+  "categories": ["health", "lifestyle", "food"],
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+
+# Capacitor (native wrapper, added later if we ship to the app stores)
+android/
+ios/
