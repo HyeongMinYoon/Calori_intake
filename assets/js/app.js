@@ -55,8 +55,10 @@ document.addEventListener('click', function(ev){
 
   if (id==='mAdd'){
     var name = document.getElementById('mName').value.trim();
+    if(!name){ S.error='음식명을 입력할 것.'; renderInput(); return; }
     var kcal = Math.round(Number(document.getElementById('m_kcal').value)||0);
-    if(!name || kcal<=0){ S.error='음식명과 kcal을 입력할 것.'; renderInput(); return; }
+    // 수치를 비워 두면 이름만으로 추정한다. 직접 넣었으면 그대로 저장 (호출 없음).
+    if(kcal<=0){ S.error=''; estimateByName(name); return; }
     addEntry({id:String(Date.now()), name:name, portion:'', kcal:kcal,
       carb:Math.round(Number(document.getElementById('m_carb').value)||0),
       protein:Math.round(Number(document.getElementById('m_protein').value)||0),

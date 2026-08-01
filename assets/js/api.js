@@ -87,6 +87,42 @@ async function analyze(){
   S.busy=false; renderInput();
 }
 
+/* ================= 이름으로 추정 =================
+ * 직접 입력에서 수치를 비워 두면 음식명만으로 열량과 탄단지를 추정한다.
+ * 결과는 사진 분석과 같은 확인 화면(S.pending)으로 보내 저장 전에 고칠 수 있게 한다. */
+async function estimateByName(name){
+  if (needsKey()){ S.error = apiMsg(new Error('nokey')); renderInput(); return; }
+  S.error=''; S.busy=true; renderInput();
+  try{
+    var prompt = '"'+name+'"의 1회 섭취량 기준 열량과 탄수화물·단백질·지방을 추정하라.\n'
+      + '- 이름에 양이나 개수가 적혀 있으면 그 양을 따른다. 없으면 한국 표준 1인분으로 본다.\n'
+      + '- 한국 음식이면 한국 기준으로 추정한다.\n'
+      + '- 여러 음식이 한 이름에 묶여 있으면 항목을 나눈다. 예: "김치찌개와 공기밥".\n'
+      + '오직 아래 JSON만 출력한다. 마크다운 백틱, 설명, 서두 없이 JSON 객체 하나만 출력한다.\n'
+      + '{"items":[{"name":"음식명(한국어)","portion":"추정량 예: 1공기 210g","kcal":0,"carb":0,"protein":0,"fat":0}],"note":"추정 근거 한 문장"}\n'
+      + 'kcal은 정수, carb/protein/fat은 그램 단위 정수. 음식으로 볼 수 없으면 items를 빈 배열로 두고 note에 이유를 적는다.';
+    var data = await callAPI({
+      model:API_MODEL, max_tokens:800,
+      messages:[{role:'user', content:prompt}]
+    });
+    var parsed = parseJSON(data);
+    var items = (parsed.items||[]).map(function(it,i){
+      return {id:Date.now()+'-'+i, name:String(it.name||name), portion:String(it.portion||''),
+        kcal:Math.max(0,Math.round(Number(it.kcal)||0)), carb:Math.max(0,Math.round(Number(it.carb)||0)),
+        protein:Math.max(0,Math.round(Number(it.protein)||0)), fat:Math.max(0,Math.round(Number(it.fat)||0))};
+    });
+    if(!items.length){
+      S.error = parsed.note || '이 이름으로는 추정하지 못했다. 수치를 직접 입력할 것.';
+    } else {
+      S.pending = {items:items, note:parsed.note||'', memo:'', preview:''};
+      S.manual = false;
+    }
+  }catch(e){
+    S.error = apiMsg(e);
+  }
+  S.busy=false; renderInput();
+}
+
 /* ================= 추천 ================= */
 async function recommend(){
   if (needsKey()){ S.recError = apiMsg(new Error('nokey')); renderRec(); return; }

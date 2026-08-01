@@ -143,7 +143,9 @@ function renderInput(){
   var html = '<div class="eyebrow" style="margin-bottom:10px">기록 추가</div>';
 
   if (S.pending){
-    html += '<div class="lab" style="margin-bottom:6px">3단계 · 값 확인 후 저장</div>';
+    // 사진 흐름은 3단계 중 마지막, 이름 추정은 곧바로 확인 화면이다.
+    html += '<div class="lab" style="margin-bottom:6px">'
+      + (S.pending.preview ? '3단계 · 값 확인 후 저장' : '추정값 확인 후 저장') + '</div>';
     html += (S.pending.preview?'<img src="'+S.pending.preview+'" alt="업로드한 음식 사진" style="width:100%;height:120px;object-fit:cover;border:1px solid var(--rule);margin-bottom:10px">':'');
     if (S.pending.memo) html += '<div style="font-size:11px;color:var(--mid);background:var(--soft);border-left:2px solid var(--rule);padding:7px 9px;margin-bottom:10px;line-height:1.5">메모 반영: '+esc(S.pending.memo)+'</div>';
     html += S.pending.items.map(function(it,i){
@@ -156,7 +158,8 @@ function renderInput(){
           }).join('')+'</div></div>';
     }).join('');
     if (S.pending.note) html += '<div style="font-size:10px;color:var(--mid);margin:6px 0 10px;line-height:1.5">'+esc(S.pending.note)+'</div>';
-    html += '<div style="display:flex;gap:8px"><button class="btn solid" id="commit" style="flex:1">기록 저장</button><button class="btn" id="cancelP">메모 수정</button></div>';
+    html += '<div style="display:flex;gap:8px"><button class="btn solid" id="commit" style="flex:1">기록 저장</button>'
+      + '<button class="btn" id="cancelP">'+(S.pending.preview?'메모 수정':'취소')+'</button></div>';
   } else if (S.photo){
     html += '<div class="lab" style="margin-bottom:6px">2단계 · 메모를 쓴 뒤 분석</div>'
       + '<img src="'+S.photo.preview+'" alt="선택한 음식 사진" style="width:100%;height:130px;object-fit:cover;border:1px solid var(--rule);margin-bottom:10px">'
@@ -177,11 +180,16 @@ function renderInput(){
     if (S.manual){
       var f2=['kcal','carb','protein','fat'], l2=['kcal','탄','단','지'];
       html += '<div style="border-top:1px solid var(--grid);margin-top:12px;padding-top:10px">'
-        + '<input class="in" id="mName" placeholder="음식명" style="margin-bottom:8px">'
+        + '<input class="in" id="mName" placeholder="음식명 (예: 김치찌개 1인분)" style="margin-bottom:8px">'
+        + '<div class="lab" style="margin-bottom:7px;line-height:1.5">'
+        + 'kcal을 비워 두면 음식명으로 자동 추정한다. 양을 함께 쓰면 정확해진다.'
+        + (needsKey()?' 추정에는 API 키가 필요하다.':'')+'</div>'
         + '<div class="g4">'+f2.map(function(k,j){
             return '<label><div class="lab">'+l2[j]+'</div><input class="in" type="number" inputmode="numeric" id="m_'+k+'"></label>';
           }).join('')+'</div>'
-        + '<div style="display:flex;gap:8px;margin-top:10px"><button class="btn solid" id="mAdd" style="flex:1">추가</button><button class="btn" id="mCancel">취소</button></div></div>';
+        + '<div style="display:flex;gap:8px;margin-top:10px">'
+        + '<button class="btn solid'+(S.busy?' scan':'')+'" id="mAdd" style="flex:1"'+(S.busy?' disabled':'')+'>'+(S.busy?'추정 중':'추가')+'</button>'
+        + '<button class="btn" id="mCancel"'+(S.busy?' disabled':'')+'>취소</button></div></div>';
     }
   }
   if (S.error) html += '<div style="font-size:11px;color:var(--c3);margin-top:10px;line-height:1.5">'+esc(S.error)+'</div>';
