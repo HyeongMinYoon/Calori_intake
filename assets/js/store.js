@@ -47,10 +47,26 @@ var S = {
   // lastChange 가 lastExport 보다 나중일 때만 알린다 — 안 쓴 날엔 조용하도록.
   backupEvery:1, lastExport:0, lastChange:0, snoozeUntil:0,
   // 체중 기록 {날짜: kg} 과 추세로 배운 열량 보정(비율), 마지막 조정 시각
-  weights:{}, tune:0, tunedAt:0,
-  // 자주 먹는 것. 편집 모드면 각 항목에 지우기 버튼이 붙는다.
-  favs:[], favEdit:false
+  weights:{}, tune:0, tunedAt:0
 };
+
+/* ================= 기본 항목 =================
+ * 기록 추가 화면 맨 위에 늘 떠 있는 고정 목록이다. 최근에 먹은 것을 자동으로
+ * 올리지 않는다 — 매일 먹는 것만 한 번 눌러 넣는 자리다.
+ *
+ * 프로틴미숫가루라떼는 매장 표기가 우유 기준(591ml, 255kcal)이라 우유를 같은
+ * 양의 무가당 오트밀크로 바꾼 값을 넣었다. 표기 수치에서 우유 240ml를 빼고
+ * 오트밀크 240ml를 더한 추정이다.
+ *
+ * 탄수는 표기 43g이 아니라 33g으로 잡았다. 제로슈가 대체당(당알코올)은 표기
+ * 탄수에 들어가지만 열량을 거의 내지 않는다. 표기값을 그대로 세면 탄수
+ * 달성률만 부풀고 kcal과 앞뒤가 맞지 않는다. */
+var PRESETS = [
+  {name:'바나나', portion:'1개 약 100g(가식부)',
+   kcal:90, carb:23, protein:1, fat:0},
+  {name:'프로틴미숫가루라떼(오트)', portion:'ICE 591ml · 우유→오트밀크 변경',
+   kcal:210, carb:33, protein:7, fat:5}
+];
 
 /* 신장 기준 참고 체중 (BMI 22) */
 function refWeight(h){ return Math.round(22 * Math.pow(h/100, 2)); }
@@ -105,49 +121,3 @@ async function persist(){
   renderDay(); renderCal(); renderRec(); renderNag();
 }
 async function saveProfile(){ await store.set('intake:profile', JSON.stringify(S.profile)); }
-
-/* ================= 자주 먹는 것 =================
- * 기록할 때마다 음식을 이름으로 기억해 두고, 다음에는 눌러서 바로 넣는다.
- * 사진이나 추정을 다시 거치지 않으므로 API 호출도 비용도 없다. */
-var FAV_SHOW = 8;   // 화면에 보여 줄 개수
-var FAV_KEEP = 40;  // 저장해 둘 개수
-
-async function loadFavs(){
-  var raw = await store.get('intake:favs');
-  try{ S.favs = raw ? JSON.parse(raw) : []; }catch(e){ S.favs = []; }
-  if (!Array.isArray(S.favs)) S.favs = [];
-}
-
-/* 이름을 열쇠로 삼고 마지막에 먹은 수치를 남긴다. 같은 음식을 다른 양으로
- * 먹었다면 최근 것이 이긴다 — '지난번과 같이'가 대개 원하는 동작이다. */
-async function noteFav(e){
-  if (!e || !e.name) return;
-  if (!Array.isArray(S.favs)) S.favs = [];
-  var key = String(e.name).trim();
-  if (!key) return;
-
-  var hit = null;
-  for (var i = 0; i < S.favs.length; i++){
-    if (S.favs[i].name === key){ hit = S.favs[i]; break; }
-  }
-  if (!hit){ hit = {name:key, n:0}; S.favs.push(hit); }
-
-  hit.portion = e.portion || '';
-  hit.kcal    = e.kcal    || 0;
-  hit.carb    = e.carb    || 0;
-  hit.protein = e.protein || 0;
-  hit.fat     = e.fat     || 0;
-  hit.n    = (hit.n || 0) + 1;
-  hit.last = Date.now();
-
-  // 자주 먹은 순, 같으면 최근 순. 한 번뿐인 항목은 자연히 뒤로 밀린다.
-  S.favs.sort(function(a,b){ return (b.n - a.n) || (b.last - a.last); });
-  if (S.favs.length > FAV_KEEP) S.favs.length = FAV_KEEP;
-  await store.set('intake:favs', JSON.stringify(S.favs));
-}
-
-async function forgetFav(name){
-  S.favs = (S.favs || []).filter(function(f){ return f.name !== name; });
-  await store.set('intake:favs', JSON.stringify(S.favs));
-  renderInput();
-}

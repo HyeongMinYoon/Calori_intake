@@ -27,16 +27,12 @@ document.addEventListener('click', function(ev){
     S.pending=null; S.photo=null; S.memo='';
     renderDay(); renderCal(); renderInput(); renderRec(); renderWeight(); return; }
 
-  var forget = t.closest('[data-forget]');
-  if (forget){ forgetFav(forget.getAttribute('data-forget')); return; }
-  if (id==='favEdit'){ S.favEdit = !S.favEdit; renderInput(); return; }
-  var fv = t.closest('[data-fav]');
-  if (fv){
-    var f = S.favs[Number(fv.getAttribute('data-fav'))];
-    if (f){
-      addEntry({id:String(Date.now()), name:f.name, portion:f.portion||'',
-        kcal:f.kcal, carb:f.carb, protein:f.protein, fat:f.fat});
-      noteFav(f);
+  var ps = t.closest('[data-preset]');
+  if (ps){
+    var pr = PRESETS[Number(ps.getAttribute('data-preset'))];
+    if (pr){
+      addEntry({id:String(Date.now()), name:pr.name, portion:pr.portion||'',
+        kcal:pr.kcal, carb:pr.carb, protein:pr.protein, fat:pr.fat});
       persist(); renderInput();
     }
     return;
@@ -81,10 +77,7 @@ document.addEventListener('click', function(ev){
   if (ri!==null && ri!==undefined && S.recs){
     var p = S.recs[Number(ri)];
     // 추천은 설명을 desc 로 담고 있어 기록 모양으로 한 번 옮겨 놓는다.
-    // 이 객체를 그대로 자주 먹는 것에도 넘겨야 1인분 같은 표시가 살아남는다.
-    var re = {id:String(Date.now()), name:p.name, portion:p.desc||'', kcal:p.kcal, carb:p.carb, protein:p.protein, fat:p.fat};
-    addEntry(re);
-    noteFav(re);
+    addEntry({id:String(Date.now()), name:p.name, portion:p.desc||'', kcal:p.kcal, carb:p.carb, protein:p.protein, fat:p.fat});
     S.recs=null; persist(); return;
   }
 
@@ -103,14 +96,12 @@ document.addEventListener('click', function(ev){
       carb:Math.round(Number(document.getElementById('m_carb').value)||0),
       protein:Math.round(Number(document.getElementById('m_protein').value)||0),
       fat:Math.round(Number(document.getElementById('m_fat').value)||0)});
-    noteFav(S.data[S.selected][S.data[S.selected].length-1]);
     S.manual=false; S.error=''; persist(); renderInput(); return;
   }
 
   if (id==='commit'){
     var stamp = new Date().toTimeString().slice(0,5);
     S.data[S.selected] = (S.data[S.selected]||[]).concat(S.pending.items.map(function(it){ return Object.assign({},it,{t:stamp}); }));
-    S.pending.items.forEach(noteFav);
     S.pending=null; S.photo=null; S.memo=''; persist(); renderInput(); return;
   }
 });
@@ -247,7 +238,6 @@ function showUpdate(worker){
   S.tune    = Number(await store.get('intake:tune')) || 0;
   S.tunedAt = Number(await store.get('intake:tunedat')) || 0;
   await loadWeights();
-  await loadFavs();
   sizeDevice();
   await loadMonth();
   renderInput(); renderCfg(); renderRec(); renderWeight(); renderNag();

@@ -223,17 +223,13 @@ function renderInput(){
   var html = '<div class="eyebrow" style="margin-bottom:10px">기록 추가</div>';
 
   /* 가장 빠른 길이라 맨 위에 둔다. 사진이나 추정을 거치지 않으므로 API 호출이
-     없고, 누르는 즉시 기록된다. */
-  if (!S.pending && !S.photo && !future && (S.favs || []).length){
-    html += '<div class="lab" style="display:flex;align-items:center;margin-bottom:7px">'
-      + '<span>자주 먹는 것 · 눌러서 바로 추가</span>'
-      + '<button class="favedit" id="favEdit">'+(S.favEdit?'완료':'편집')+'</button></div>'
-      + '<div class="favs">' + S.favs.slice(0, FAV_SHOW).map(function(f,i){
-          return '<button class="fav" data-fav="'+i+'">'
+     없고, 누르는 즉시 기록된다. 목록은 PRESETS 로 고정이다. */
+  if (!S.pending && !S.photo && !future){
+    html += '<div class="lab" style="margin-bottom:7px">기본 항목 · 눌러서 바로 추가</div>'
+      + '<div class="favs">' + PRESETS.map(function(f,i){
+          return '<button class="fav" data-preset="'+i+'">'
             + '<span class="fn">'+esc(f.name)+'</span>'
-            + '<span class="fk">'+f.kcal+'</span>'
-            + (S.favEdit?'<span class="fx" data-forget="'+esc(f.name)+'">×</span>':'')
-            + '</button>';
+            + '<span class="fk">'+f.kcal+'</span></button>';
         }).join('') + '</div>'
       + '<div style="border-top:1px solid var(--grid);margin:12px 0 11px"></div>';
   }
