@@ -39,7 +39,6 @@ function renderWeight(){
   var day = S.selected;
   var today = S.weights ? S.weights[day] : null;
   var t = weightTrend();
-  var s = tuneSuggestion();
   var band = RATE[S.profile.goal];
 
   var rateTxt = '기록이 더 쌓이면 표시된다';
@@ -73,27 +72,8 @@ function renderWeight(){
       + '<div style="font-size:12px;line-height:1.5">'+rateTxt+'</div></div></div>';
   }
 
-  if (s.ready){
-    html += '<div style="border-top:1px solid var(--grid);margin-top:12px;padding-top:11px">'
-      + '<div style="font-size:11px;line-height:1.6;background:var(--soft);border-left:2px solid var(--rule);padding:8px 10px">'
-      + '실제 <strong>'+(s.trend.rate>0?'+':'')+s.trend.rate.toFixed(2)+'%/주</strong>, '
-      + '목표 '+s.band.lo+'~'+s.band.hi+'%.<br>'
-      + '하루 목표를 <strong>'+s.before+' → '+s.after+' kcal</strong> 로 '+s.dir+'.'
-      + '</div>'
-      + '<div style="display:flex;gap:8px;margin-top:10px">'
-      + '<button class="btn solid" id="tuneOk" data-tune="'+s.tune+'" style="flex:1">조정 적용</button>'
-      + '<button class="btn" id="tuneNo">그대로</button></div></div>';
-  } else if (s.why){
-    html += '<div style="font-size:10px;color:'+(s.onTrack?'var(--c2)':'var(--mid)')+';margin-top:10px;line-height:1.5">'
-      + esc(s.why) + '</div>';
-  }
-
-  if (S.tune){
-    html += '<div style="font-size:10px;color:var(--mid);margin-top:8px;line-height:1.5">'
-      + '현재 보정 <strong style="color:var(--ink)">'+(S.tune>0?'+':'')+Math.round(S.tune*100)+'%</strong>'
-      + ' — 계수만 쓴 값 대비. <button class="x" id="tuneReset" style="font-size:10px;padding:2px 4px;text-decoration:underline">초기화</button></div>';
-  }
-
+  /* 판단은 하지 않고 재료만 놓는다. 변화율이 아직 안 나오는 사정은 위의
+     rateTxt 가 이미 말하고 있으므로 여기서 덧붙이지 않는다. */
   el.innerHTML = html;
 }
 

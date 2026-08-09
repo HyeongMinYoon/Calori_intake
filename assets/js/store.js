@@ -9,12 +9,23 @@
 var CH = {carb:'var(--c1)', protein:'var(--c2)', fat:'var(--c3)'};
 var DOW = ['일','월','화','수','목','금','토'];
 
-/* 목적별 계수: kcal/kg, 단백질 g/kg, 지방 g/kg */
+/* 목적별 계수: kcal/kg, 단백질 g/kg, 지방 g/kg
+ *
+ * kcal 계수는 원래 28/33/38/43 이었다. 활동량을 모르는 값이라 앉아서 지내는
+ * 사람 쪽에 맞춰져 있었고, 실제 섭취 기록과 어긋났다 — 8일간 하루 2325kcal
+ * (체중당 34.8)을 먹는 동안 체중이 오르지 않았으니 유지 열량이 최소 그 이상인데,
+ * 유지 계수 33은 2200을 가리켰다.
+ *
+ * 주 6회 60분 웨이트라는 활동량으로 유지 열량을 약 2600(체중당 39)으로 잡고,
+ * 39/33 = 1.18 을 네 계수에 모두 곱했다. 목적 사이의 관계는 그대로 두고 눈금만
+ * 옮긴 셈이다.
+ *
+ * 이 값은 추정이다. 체중 추세가 목표 구간을 벗어나면 다시 맞춰야 한다. */
 var GOALS = {
-  cut:  {label:'감량',    kcal:28, p:2.0, f:0.8, sub:'유지 대비 적자, 단백질 최대'},
-  keep: {label:'유지',    kcal:33, p:1.6, f:1.0, sub:'현 체중 유지, 균형 배분'},
-  lean: {label:'린매스업', kcal:38, p:1.8, f:1.0, sub:'완만한 증량, 지방 억제'},
-  bulk: {label:'벌크업',  kcal:43, p:1.8, f:1.1, sub:'적극적 증량, 탄수 확대'}
+  cut:  {label:'감량',    kcal:33, p:2.0, f:0.8, sub:'유지 대비 적자, 단백질 최대'},
+  keep: {label:'유지',    kcal:39, p:1.6, f:1.0, sub:'현 체중 유지, 균형 배분'},
+  lean: {label:'린매스업', kcal:45, p:1.8, f:1.0, sub:'완만한 증량, 지방 억제'},
+  bulk: {label:'벌크업',  kcal:51, p:1.8, f:1.1, sub:'적극적 증량, 탄수 확대'}
 };
 
 var DEVICES = {
@@ -46,8 +57,8 @@ var S = {
   // 백업 알림. backupEvery 는 며칠마다 알릴지, 0 이면 끄기.
   // lastChange 가 lastExport 보다 나중일 때만 알린다 — 안 쓴 날엔 조용하도록.
   backupEvery:1, lastExport:0, lastChange:0, snoozeUntil:0,
-  // 체중 기록 {날짜: kg} 과 추세로 배운 열량 보정(비율), 마지막 조정 시각
-  weights:{}, tune:0, tunedAt:0
+  // 체중 기록 {날짜: kg}
+  weights:{}
 };
 
 /* ================= 기본 항목 =================
@@ -81,13 +92,12 @@ var PRESETS = [
 /* 신장 기준 참고 체중 (BMI 22) */
 function refWeight(h){ return Math.round(22 * Math.pow(h/100, 2)); }
 
-/* 목표 산출.
- * S.tune 은 체중 추세로 배운 보정값이다. 계수는 성별·활동량을 모르는 추측이라
- * 개인차를 담지 못하므로, 총 열량만 보정하고 단백질·지방은 체중당 값을 유지한다.
- * 탄수화물이 나머지로 계산되므로 보정분을 자동으로 흡수한다. */
+/* 목표 산출. 화면에 뜨는 값이 곧 실제로 맞춰야 할 값이다 — 머릿속에서 다시
+ * 환산하지 않도록. 단백질과 지방은 체중당 하한선이고, 탄수화물이 나머지를
+ * 흡수한다. */
 function targets(){
   var g = GOALS[S.profile.goal], w = S.profile.w;
-  var kcal = Math.round(w * g.kcal * (1 + (S.tune || 0)) / 10) * 10;
+  var kcal = Math.round(w * g.kcal / 10) * 10;
   var protein = Math.round(w * g.p);
   var fat = Math.round(w * g.f);
   var carb = Math.max(0, Math.round((kcal - protein*4 - fat*9) / 4));

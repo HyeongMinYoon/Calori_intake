@@ -50,13 +50,12 @@ async function exportData(){
     var data = {
       app:'intake-log', version:BACKUP_VERSION,
       exportedAt:new Date().toISOString(),
-      profile:null, months:{}, weights:{}, tune:0
+      profile:null, months:{}, weights:{}
     };
     var p = await store.get('intake:profile');
     if (p){ try{ data.profile = JSON.parse(p); }catch(e){} }
     var w = await store.get('intake:weight');
     if (w){ try{ data.weights = JSON.parse(w) || {}; }catch(e){} }
-    data.tune = Number(await store.get('intake:tune')) || 0;
 
     var months = await backupMonths();
     for (var i=0; i<months.length; i++){
@@ -185,11 +184,7 @@ async function applyImport(){
       });
       await store.set('intake:weight', JSON.stringify(S.weights));
     }
-    // 옛 백업 파일에는 favs 가 들어 있지만 이제 쓰지 않으므로 그냥 흘려보낸다
-    if (typeof data.tune === 'number' && data.tune){
-      S.tune = data.tune;
-      await store.set('intake:tune', String(S.tune));
-    }
+    // 옛 백업 파일의 favs 와 tune 은 이제 쓰지 않으므로 그냥 흘려보낸다
     if (data.profile){
       S.profile = Object.assign(S.profile, data.profile);
       await saveProfile();

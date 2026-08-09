@@ -43,14 +43,6 @@ document.addEventListener('click', function(ev){
     return;
   }
   if (id==='wtDel'){ saveWeight(S.selected, 0); return; }
-  if (id==='tuneOk'){ applyTune(Number(t.getAttribute('data-tune'))); return; }
-  if (id==='tuneNo'){
-    // 이번 제안은 넘긴다. 다음 판단까지 최소 간격을 두기 위해 시각만 찍는다.
-    S.tunedAt = Date.now();
-    store.set('intake:tunedat', String(S.tunedAt));
-    renderWeight(); return;
-  }
-  if (id==='tuneReset'){ resetTune(); return; }
 
   if (id==='expBtn' || id==='nagExp'){ exportData(); return; }
   if (id==='nagLater'){ snoozeBackup(); return; }
@@ -235,8 +227,6 @@ function showUpdate(worker){
   S.lastExport  = Number(await store.get('intake:lastexport')) || 0;
   S.lastChange  = Number(await store.get('intake:lastchange')) || 0;
   S.snoozeUntil = Number(await store.get('intake:snooze')) || 0;
-  S.tune    = Number(await store.get('intake:tune')) || 0;
-  S.tunedAt = Number(await store.get('intake:tunedat')) || 0;
   await loadWeights();
   sizeDevice();
   await loadMonth();
